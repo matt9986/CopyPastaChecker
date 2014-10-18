@@ -3,22 +3,17 @@
 
   // Constructor function
   var TextIndex = CopyPastaChecker.TextIndex = function() {
-    this.index_length = 100;
   };
 
   // This function should be the do-all function, 
   TextIndex.prototype.create_index = function(text) {
-    var new_index = this.get_empty_index(this.index_length);
+    var new_index = this.get_empty_index();
     return this.populate_index(new_index, text);
   };
 
   // A function that just returns a blank index object of the right size
   TextIndex.prototype.get_empty_index = function(len) {
     var index = [];
-
-    for (var i = 0; i < len; i++) {
-      index.push([]);
-    };
 
     return index;
   };
@@ -35,15 +30,11 @@
   };
 
   TextIndex.prototype.set_index_at_position = function(index, character, pos) {
-    var len = index.length;
-    for (var i = 0; i < len; i++) {
-      // If this character hasn't occured at this position of the index before
-      // create a new list to hold positions
-      index[i][character] = index[i][character] || [];
-      // Add this position to the list of positions that have this character at
-      // this place in the index
-      index[i][character].push(pos - i);
-    };
+    // If this character hasn't occured before create a new list to hold
+    // positions
+    index[character] = index[character] || [];
+    // Add this position to the list of positions that have this character
+    index[character].push(pos);
   };
 
 
@@ -73,9 +64,9 @@
     var tally = []; // We're going to save them in pos1=>[pos2=>#matches]
     var threshold = []; // Store in here as 'pos1...pos2'=>#matches
     for (var i = 0; i < len; i++) {
-      for (var chr in index_1[i]) {
-        if (chr in index_2[i]) {
-          this.tally_matches(tally, threshold, index_1[i][chr], index_2[i][chr], i === 0);
+      for (var chr in index_1) {
+        if (chr in index_2) {
+          this.tally_matches(tally, threshold, index_1[chr], index_2[chr], i);
         };
       };
     };
@@ -129,9 +120,9 @@
   };
 
   // Five parameters, getting a little heavy...
-  IndexMatcher.prototype.tally_matches = function(tally, matches, positions_1, positions_2, add_new) {
+  IndexMatcher.prototype.tally_matches = function(tally, matches, positions_1, positions_2, offset) {
     var that = this;
-    if (add_new) {
+    if (offset === 0) {
       positions_1.forEach(function(pos1) {
         tally[pos1] = [];
         positions_2.forEach(function(pos2) {
@@ -141,14 +132,14 @@
     } else {
       // Not the first time? Lets only increment matches we have then.
       positions_1.forEach(function(pos1) {
-        if (pos1 in tally) {
+        if ((pos1 - offset) in tally) {
           positions_2.forEach(function(pos2) {
-            if (pos2 in tally[pos1]) {
-              var count = tally[pos1][pos2];
+            if ((pos2 - offset) in tally[(pos1 - offset)]) {
+              var count = tally[(pos1 - offset)][(pos2 - offset)];
               count++;
-              tally[pos1][pos2] = count;
+              tally[(pos1 - offset)][(pos2 - offset)] = count;
               if (count >= (that.match_length - that.acceptable_errors)) {
-                var index = [pos1, pos2].join('...');
+                var index = [(pos1 - offset), (pos2 - offset)].join('...');
                 matches[index] = count;
               };
             };
@@ -161,12 +152,6 @@
   IndexMatcher.prototype.verify_indexes = function(index_1, index_2) {
     if (!(index_1 instanceof Array) || !(index_2 instanceof Array)) {
       throw "Parameter 1 and 2 need to be index objects";
-    };
-    if (index_1.length < this.match_length) {
-      throw "Parameter 1 index is too small for a match length of " + this.match_length;
-    };
-    if (index_2.length < this.match_length) {
-      throw "Parameter 2 index is too small for a match length of " + this.match_length;
     };
   };
 })(window)

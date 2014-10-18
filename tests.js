@@ -68,27 +68,22 @@ Function.prototype.inherits = function(fun) {
 
   CopyPastaCheckerTests.prototype.test_create_blank_index = function() {
     var text_index = new root.CopyPastaChecker.TextIndex;
-    var width = 50;
-    // Just want to start with an easy 50 wide index
-    var blank_index = text_index.get_empty_index(width);
-    this.assert_equals(width, blank_index.length);
-    for (var i = blank_index.length - 1; i >= 0; i--) {
-      this.assert_truthy(blank_index[i] instanceof Array);
-      this.assert_equals(0, blank_index[i].length);
-    };
+    var blank_index = text_index.get_empty_index();
+
+    this.assert_truthy(blank_index instanceof Array);
+    this.assert_equals(0, blank_index.length);
   };
 
   CopyPastaCheckerTests.prototype.test_create_index = function() {
     var text_index = new root.CopyPastaChecker.TextIndex;
     var str = "Lets start with defaults on and a simple sentence that is useful";
     var index = text_index.create_index(str);
-    this.assert_equals(100, index.length);
+    // 19 is the number of unique characters in str
+    this.assert_equals(19, Object.keys(index).length);
     for (var i = str.length - 1; i >= 0; i--) {
-      for (var l = index.length - 1; l >= 0; l--) {
-        this.assert_truthy(str[i] in index[l]);
-        var line_nums = index[l][str[i]];
-        this.assert_truthy(line_nums.indexOf(i - l) != -1);
-      };
+      this.assert_truthy(str[i] in index);
+      var line_nums = index[str[i]];
+      this.assert_truthy(line_nums.indexOf(i) != -1);
     };
   }
 
